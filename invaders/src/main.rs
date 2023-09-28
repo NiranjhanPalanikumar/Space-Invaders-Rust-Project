@@ -17,7 +17,7 @@ use invaders::{
     //invaders::Invaders,
     //level::Level,
     //menu::Menu,
-    //player::Player,
+    player::Player,
     render,
     //score::Score,
 };
@@ -76,16 +76,20 @@ fn main() -> Result<(), Box<dyn Error>> {       //making main return a Result so
 
     //Game loop
     //---------------------
+
+    let mut player = Player::new();
     'gameloop: loop{                //named loop so that we can exit from any point necessary
 
         //Per frame initialisation
-        let curr_frame = new_frame();
+        let mut curr_frame = new_frame();
 
         
         //Input handling
         while event::poll(Duration::default())? {               //poll funcion takes a duration [using default() which is 0]
             if let Event::Key(key_event) = event::read()? {     //checking for key_events
                 match key_event.code {                          //matching for specific keycodes for different events
+                    KeyCode::Left => player.move_left(),        //left arrow to move player left
+                    KeyCode::Right => player.move_right(),      //right arrow to move player right
                     KeyCode::Esc | KeyCode::Char('q') => {      //for exiting the game
                         audio.play("lose");                     //play losing sound because we exited early
                         break 'gameloop;                        //breaking out of the game loop
@@ -97,6 +101,7 @@ fn main() -> Result<(), Box<dyn Error>> {       //making main return a Result so
 
 
         //Draw & Render section
+        player.draw(&mut curr_frame);
         let _ = render_tx.send(curr_frame);                     //will fail the first few times, because this game loop will get going before that child thread is up and start receiving, which will not be available
         thread::sleep(Duration::from_millis(1));                //game loop is faster than render loop. to balance the delay and not spend too much resource on rendering
     }
