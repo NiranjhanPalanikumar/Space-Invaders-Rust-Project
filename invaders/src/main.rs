@@ -12,12 +12,16 @@ use std::{
     {io, thread},
 };
 
-//use std::error::Error;
-//use rusty_audio::Audio;
-//use std::io;
-//use crossterm::{terminal, ExecutableCommand};
-//use crossterm::terminal::{EnterAlternateScreen, LeaveAlternateScreen};
-//use crossterm::cursor::{Hide, Show};
+use invaders::{
+    frame::{self, new_frame, Drawable, Frame},
+    //invaders::Invaders,
+    //level::Level,
+    //menu::Menu,
+    //player::Player,
+    render,
+    //score::Score,
+};
+
 
 //Main function
 //-------------------------
@@ -42,9 +46,41 @@ fn main() -> Result<(), Box<dyn Error>> {       //making main return a Result so
     stdout.execute(Hide)?;                  //hiding the cursor
 
     
+    //Render loop in a separate thread
+    //setting up a channel to communicate with our thread
+    let (render_tx, render_rx) = mpsc::channel();
+    //thread
+    let render_handle = thread::spawn(move || {
+        let mut last_frame = frame::new_frame();                //variable to hold the last_frame (initialised with new empty frame)
+
+        //rendering stdout
+        let mut stdout = io::stdout();
+
+        //ready to render the entire screen
+        render::render(&mut stdout, &last_frame, &last_frame, true);    //2nd "last_frame" arg is give in place of current frame -> because in the beginning everything has to be drawn. and "true" for force draw
+
+        //performing the incremental updates in a loop
+        loop {
+            //getting our current_frame
+            //moving render_rx into this thread. This returns a result -> either "current_frame" or "error" if channel is closed
+            //matching with the result
+            let curr_frame = match render_rx.recv() {
+                Ok(x) => x,                                     //if ok, then returns a frame
+                Err(_) => break,                                //if error, break out of the rendfer loop shutting down the child thread
+            };
+            render::render(&mut stdout, &last_frame, &curr_frame, false);                                    
+            last_frame = curr_frame;                            //setting up last_frame for the next loop
+        }
+    });
+
+
     //Game loop
     //---------------------
     'gameloop: loop{                //named loop so that we can exit from any point necessary
+
+        //Per frame initialisation
+        let curr_frame = new_frame();
+
         
         //Input handling
         while event::poll(Duration::default())? {               //poll funcion takes a duration [using default() which is 0]
@@ -59,11 +95,19 @@ fn main() -> Result<(), Box<dyn Error>> {       //making main return a Result so
             }
         };    
 
+
+        //Draw & Render section
+        let _ = render_tx.send(curr_frame);                     //will fail the first few times, because this game loop will get going before that child thread is up and start receiving, which will not be available
+        thread::sleep(Duration::from_millis(1));                //game loop is faster than render loop. to balance the delay and not spend too much resource on rendering
     }
 
 
     //Cleanup section
     //-----------------------
+
+    //joining the thread for good clean up practice
+    drop(render_tx);
+    render_handle.join().unwrap();
 
     //if we leave the audio in the main we wont be able to hear anything coz the audio sys plays the audio in a separate thread in parallel
     //so when the main func ends all threads will be closed
