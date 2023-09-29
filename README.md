@@ -44,3 +44,58 @@ This section has all the commands to reverse the actions made:
 - Disabling the key inputs
 
 
+## Module files
+
+## lib.rs
+This is the root module of our directory.
+Initialises the number of rows and columns, and makes the other modules avaliable to use.
+
+
+## frame.rs
+Initialise a type Frame which is a Vector of Vector of borrowed static string slices. 
+
+- function new_frame()
+Returns an output of type Frame. A loop is run for total number of columns, and in each iteration a single column is constructed looping through the number of rows. Each generated column is pushed individually into the final vector creating the whole saetup.
+
+Adds a trait 'Drawable' with function draw() that takes in the arguments immutable 'self', and a mutable reference to a frame.
+
+
+## render.rs
+This module has a function render() that takes int he arguments mutable reference for stdout for rendering, immutable reference of current frame and last frame of type Frame, and a boolean value for force which renders the whole screen if true or renders the changes from last frame to current frame if false.
+
+If the boolean value for force is true 
+- Sets the background color to Blue, and clears the whole screen. 
+- Sets the background color of the playing area to black, to show a clear boundary.
+- Sets the foreground color to white for all our objects and characters
+
+If the boolean value for force is false
+Iterates through the whole frame in current frame and draws the changes that have occurred since the previous frame.
+
+
+## player.rs
+This module handles all the informtion for the player.
+
+The Player struct has the 2 positional parameters 'x' and 'y' and a Vector of Shot for shots fired
+
+The player object is implemented at the bottom row and in the middle, which are num_rows - 1 and num_cols/2 respectively. Different functions are created for each action
+
+- function move_left() - it makes sure the value is greater than 0 and decreases it by 1 unit.
+- function move_right() - it makes sure the value is less than num_cols-1, and increases it by 1 unit.
+
+
+Implementing Drawable for player. The function takes in 2 arguments an immutable reference to self, and a mutable reference to Frame. The player is represented with the character 'A' with the current location. 
+
+
+## shot.rs
+This module is to handle the laser shots fired fired by our spaceship. The laser is represented by the "|" symbol and explosion after itting a target is represented by '*' symbol.
+
+A struct is intialised position 'x' and 'y', a 'bool' for explosion (default false), and a 'timer' to track the movement. 
+
+The Shot object is implemented with 
+- function new() to initialise its position position and 50 ms timer. 
+- function "update()" to update the timer and move the laser shot upward making sure it doesnt do go out of bounds, and finally resetting timer for the next. 
+- function explode() to show the result of shot
+- function dead() to signify if we died in the game
+
+Drawing the shot fired using function draw(), this takes the position values in the frame and draws the laser shot fired with a '|' or '*'.
+
