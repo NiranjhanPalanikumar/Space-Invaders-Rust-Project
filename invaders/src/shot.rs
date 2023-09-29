@@ -48,6 +48,6 @@ impl Shot {
 //drawing the shot fired
 impl Drawable for Shot {
     fn draw(&self, frame: &mut Frame) {
-        frame[self.x][self.y] = if self.exploding { '*' } else { '|' };     //if exploding-> '*' symbol else shot continues till it reaches top '|'
+        frame[self.x][self.y] = if self.exploding { "*" } else { "|" };     //if exploding-> '*' symbol else shot continues till it reaches top '|'
     }
 }

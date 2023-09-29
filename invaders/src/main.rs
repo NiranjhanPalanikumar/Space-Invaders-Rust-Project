@@ -78,18 +78,27 @@ fn main() -> Result<(), Box<dyn Error>> {       //making main return a Result so
     //---------------------
 
     let mut player = Player::new();
-    'gameloop: loop{                //named loop so that we can exit from any point necessary
+    let mut instant = Instant::now();                           //creating instance for delta
+    'gameloop: loop{                                            //named loop so that we can exit from any point necessary
 
         //Per frame initialisation
+        let delta = instant.elapsed();                          //lapsed time since it began
+        instant = Instant::now();                               //updating the instance
         let mut curr_frame = new_frame();
-
         
+
         //Input handling
         while event::poll(Duration::default())? {               //poll funcion takes a duration [using default() which is 0]
             if let Event::Key(key_event) = event::read()? {     //checking for key_events
                 match key_event.code {                          //matching for specific keycodes for different events
                     KeyCode::Left => player.move_left(),        //left arrow to move player left
                     KeyCode::Right => player.move_right(),      //right arrow to move player right
+                    KeyCode::Char(' ') | KeyCode::Enter => {     //spacebar or enter key for shooting
+                        if player.shoot(){                      //returns a boolean
+                            audio.play("pew");                  //pew sound for shooting
+                        }     
+
+                    }
                     KeyCode::Esc | KeyCode::Char('q') => {      //for exiting the game
                         audio.play("lose");                     //play losing sound because we exited early
                         break 'gameloop;                        //breaking out of the game loop
@@ -98,6 +107,10 @@ fn main() -> Result<(), Box<dyn Error>> {       //making main return a Result so
                 }
             }
         };    
+
+
+        //Updating timers
+        player.update(delta);
 
 
         //Draw & Render section

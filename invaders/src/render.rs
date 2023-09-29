@@ -16,7 +16,7 @@ pub fn render(stdout: &mut Stdout, last_frame: &Frame, curr_frame: &Frame, force
         stdout.queue(SetBackgroundColor(Color::Blue)).unwrap();                     //clearing the screen and setting background to blue
         stdout.queue(Clear(ClearType::All)).unwrap();                               //clear all of the screen
         stdout.queue(SetBackgroundColor(Color::Black)).unwrap();                    //setting playing field background to black
-        stdout.queue(SetForegroundColor(Color::White)).unwrap();                    //
+        stdout.queue(SetForegroundColor(Color::White)).unwrap();                    //for characters
     }
 
     //iterating through the entire frame and draw whatever is changed
